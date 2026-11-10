@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Environments and secrets
+.env
+.venv/
+
+# Data: never commit datasets, keep only folder placeholders
+data/raw/*
+data/synthetic/*
+data/processed/*
+!data/**/.gitkeep
+
+# Model weights and training runs
+*.pt
+*.pth
+*.ckpt
+*.onnx
+runs/
+
+# Blender backup files
+*.blend1
+
+# OS files
+Thumbs.db
+.DS_Store
