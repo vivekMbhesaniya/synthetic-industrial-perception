@@ -28,3 +28,6 @@ runs/
 # OS files
 Thumbs.db
 .DS_Store
+
+# Editor settings (machine-specific paths)
+.vscode/
