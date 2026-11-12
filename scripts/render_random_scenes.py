@@ -24,7 +24,6 @@ if not job_dirs:
 
 bproc.init()
 bproc.renderer.enable_depth_output(activate_antialiasing=False)
-bproc.renderer.enable_segmentation_output(map_by=["category_id"], default_values={"category_id": 0})
 bproc.renderer.set_max_amount_of_samples(64)
 
 
@@ -72,7 +71,7 @@ for i, d in enumerate(job_dirs, start=1):
 
     bproc.object.simulate_physics_and_fix_final_poses(min_simulation_time=2, max_simulation_time=10, check_object_interval=1)
 
-    for k, lj in enumerate(job["lights"]):
+    for lj in job["lights"]:
         light = bproc.types.Light()
         light.set_location(lj["position_m"])
         light.set_energy(lj["energy_w"])
@@ -86,10 +85,17 @@ for i, d in enumerate(job_dirs, start=1):
         bproc.math.change_source_coordinate_frame_of_transformation_matrix(cam2world_cv, OPENCV_TO_BLENDER_CAMERA)
     )
 
+    # Segmentation is set up AFTER the objects exist; set up before them, every part came out as 0.
+    bproc.renderer.enable_segmentation_output(map_by=["category_id"], default_values={"category_id": 0})
+
     data = bproc.renderer.render()
     for key in ("colors", "depth", "category_id_segmaps"):
         if key not in data:
             raise KeyError(f"{d}: render output '{key}' missing, got {sorted(data.keys())}")
+    seg = np.asarray(data["category_id_segmaps"][0])
+    visible = sorted(int(v) for v in np.unique(seg) if v > 0)
+    if parts and not visible:
+        raise RuntimeError(f"{d}: {len(parts)} parts in the scene but none in the segmentation")
     bproc.writer.write_hdf5(str(d), data)
 
     world2cam_cv = np.linalg.inv(cam2world_cv)
@@ -107,4 +113,4 @@ for i, d in enumerate(job_dirs, start=1):
             }
         )
     (d / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
-    print(f"[{i}/{len(job_dirs)}] {d.name}: {len(parts)} parts, {len(job['lights'])} lights")
+    print(f"[{i}/{len(job_dirs)}] {d.name}: {len(parts)} parts, visible ids {visible}, {len(job['lights'])} lights")
