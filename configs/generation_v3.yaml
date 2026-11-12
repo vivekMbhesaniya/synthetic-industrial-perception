@@ -1,0 +1,36 @@
+# Random scene generation, version 3. World frame: table top at z = 0, z up, metres.
+# Changes from v2 (measured with scripts/compare_brightness.py against real T-LESS scene 1):
+#  v2 background median grey 121 vs 42 real, parts 191 vs 169. The background dropped less than
+#  the table and light changes predict, so the white world background (ambient light reflected
+#  even by a dark, smooth table) is reduced, the table made rougher, lights and part albedo lowered.
+schema_version: 3
+seed: 2026
+dataset_root: data/raw/tless
+models: models_cad
+mesh_unit_to_m: 0.001
+objects: [2, 25, 29, 30]
+objects_per_scene: [3, 6]
+image: {width: 720, height: 540}
+intrinsics: {fx: 1075.65, fy: 1073.90, cx: 360.0, cy: 270.0}
+camera:
+  distance_m: [0.65, 0.90]
+  elevation_deg: [45, 85]
+  azimuth_deg: [0, 360]
+  target_jitter_m: 0.05
+placement:
+  area_m: 0.30
+  drop_height_m: [0.08, 0.09]
+  stack_spacing_m: 0.16
+lights:
+  count: [1, 3]
+  energy_w: [10, 80]
+  distance_m: [0.5, 1.5]
+  elevation_deg: [20, 85]
+world_background_strength: [0.0, 0.05]
+object_material:
+  gray: [0.2, 0.8]
+  roughness: [0.1, 0.9]
+  metallic: [0.0, 0.5]
+table_material:
+  gray: [0.005, 0.08]
+  roughness: [0.6, 1.0]
