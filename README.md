@@ -1,7 +1,7 @@
 # Synthetic-to-Real Data Pipeline for Industrial Perception
 
-**Status: work in progress.** Phases 1 and 2 complete (environment, verified renderer conventions,
-real-vs-rendered analysis on T-LESS). No randomized dataset or model results yet.
+**Status: work in progress.** Phases 1 to 3 complete (environment, verified renderer conventions,
+real-vs-rendered analysis on T-LESS). No model results yet.
 
 Research question: how can synthetic image and 3D sensor data generated in simulation
 be made realistic enough to support industrial object perception models on real data?
@@ -50,6 +50,44 @@ Findings:
 
 See `results/phase2/` for figures and the per-instance table.
 
+## Phase 3: randomized synthetic scenes
+
+Configuration `configs/generation_v3.yaml`, seed 2026: 300 scenes, each with 3 to 6 T-LESS parts
+(objects 2, 25, 29, 30) dropped onto a table with rigid-body physics; random grey level, roughness and
+metallic value per part; 1 to 3 point lights; camera at 0.65 to 0.90 m and 45 to 85 degrees elevation.
+Each scene stores RGB, depth, instance segmentation, the final model-to-camera poses (OpenCV frame,
+metres) and every sampled parameter. Generation is deterministic: the same seed reproduces the same
+physics result and the same depth, down to the micrometre.
+
+**Validation**, for every visible instance (1,368 of 1,387): the rendered depth of the labelled pixels,
+back-projected and mapped into the model frame with the exported pose, lies on the CAD surface with a
+median distance of 0.164 mm (largest per-instance median 0.462 mm). That is within the bound expected
+from sampling depth inside a pixel, half the pixel diagonal: about 0.49 mm at 0.75 m and 0.59 mm at
+0.9 m. No part left the table.
+
+**Problems found and fixed during generation:**
+- Segmentation configured before the objects existed labelled every pixel as background. Fixed by
+  ordering, plus a guard that stops generation if a scene has parts but no labelled pixels.
+- Overlapping start positions let the physics solver push a part through the infinitely thin table.
+  Fixed by stacking drop heights further apart than the largest part's bounding-sphere diameter, and
+  by using a 10 cm thick table.
+
+**Brightness vs real T-LESS scene 1** (grey level 0 to 255, median): parts 162 vs 169, background
+93 vs 42. The background is still too bright. Reducing ambient light six-fold barely changed it, which
+ruled that out as the main cause. Blender's view transform is Filmic, a tone curve that compresses
+contrast and lifts dark values; switching to Standard is the next thing to test. Tuning was stopped
+after a fixed number of iterations (v1 to v3) by design.
+
+**Observation:** render time per scene grew from about 5 s to about 32 s over one 300-scene Blender
+session (also seen, less strongly, in the 50-frame replica run). Likely cause: state accumulating in a
+long session. Mitigation: render in batches of separate processes.
+
+```
+python scripts/make_random_jobs.py configs/generation_v3.yaml --count 300 --out-root data/synthetic/gen_v3
+blenderproc run scripts/render_random_scenes.py data/synthetic/gen_v3 "scene_*"
+python scripts/validate_scenes.py data/synthetic/gen_v3 "scene_*"
+python scripts/compare_brightness.py data/raw/tless data/synthetic/gen_v3 "scene_*"
+```
 ## Reproduce
 
 ```
