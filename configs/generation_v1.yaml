@@ -1,0 +1,30 @@
+# Random scene generation, version 1. World frame: table plane z = 0, z up, metres.
+schema_version: 1
+seed: 2026
+dataset_root: data/raw/tless
+models: models_cad
+mesh_unit_to_m: 0.001
+objects: [2, 25, 29, 30]          # the parts of real test scene 1
+objects_per_scene: [3, 6]         # inclusive; drawn with replacement
+image: {width: 720, height: 540}
+intrinsics: {fx: 1075.65, fy: 1073.90, cx: 360.0, cy: 270.0}   # fx, fy from real T-LESS calibration
+camera:
+  distance_m: [0.65, 0.90]
+  elevation_deg: [45, 85]
+  azimuth_deg: [0, 360]
+  target_jitter_m: 0.05
+placement:
+  area_m: 0.30                    # parts start inside a square of this size around the origin
+  drop_height_m: [0.05, 0.25]
+lights:
+  count: [1, 3]
+  energy_w: [20, 150]
+  distance_m: [0.5, 1.5]
+  elevation_deg: [20, 85]
+object_material:
+  gray: [0.2, 0.9]
+  roughness: [0.1, 0.9]
+  metallic: [0.0, 0.5]
+table_material:
+  gray: [0.05, 0.6]
+  roughness: [0.3, 1.0]
