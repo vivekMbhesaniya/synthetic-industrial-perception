@@ -10,6 +10,11 @@ from pathlib import Path
 
 import numpy as np
 
+# Pixel-centre convention: OpenCV/BOP put pixel centres at integer coordinates. Rendering with
+# the unchanged K placed every part +0.5 px right and down of the full real masks (measured on
+# T-LESS scene 1, frame 1, all four parts). Shifting the principal point by -0.5 px compensates.
+PIXEL_CENTRE_SHIFT = -0.5
+
 parser = argparse.ArgumentParser()
 parser.add_argument("job_dir")
 args = parser.parse_args()
@@ -33,7 +38,10 @@ for o in job["objects"]:
 # World frame = OpenCV camera frame, so the camera sits at the origin.
 # A Blender camera looks along -z with y up: flip y and z.
 cam2world = bproc.math.change_source_coordinate_frame_of_transformation_matrix(np.eye(4), ["X", "-Y", "-Z"])
-bproc.camera.set_intrinsics_from_K_matrix(np.array(job["K"]), job["width"], job["height"])
+K_blender = np.array(job["K"], dtype=np.float64)
+K_blender[0, 2] += PIXEL_CENTRE_SHIFT
+K_blender[1, 2] += PIXEL_CENTRE_SHIFT
+bproc.camera.set_intrinsics_from_K_matrix(K_blender, job["width"], job["height"])
 bproc.camera.add_camera_pose(cam2world)
 
 light = bproc.types.Light()
@@ -46,5 +54,5 @@ bproc.renderer.set_max_amount_of_samples(64)
 
 data = bproc.renderer.render()
 bproc.writer.write_hdf5(str(job_dir), data)
-print(f"Rendered {len(job['objects'])} objects, outputs: {sorted(data.keys())}")
+print(f"Rendered {len(job['objects'])} objects with principal-point shift {PIXEL_CENTRE_SHIFT} px")
 print(f"Wrote {job_dir / '0.hdf5'}")
