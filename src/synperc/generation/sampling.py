@@ -76,7 +76,7 @@ def sample_scene(cfg: dict, scene_index: int, base_seed: int) -> dict:
                 "initial_position_m": [
                     _uniform(rng, (-half, half)),
                     _uniform(rng, (-half, half)),
-                    _uniform(rng, cfg["placement"]["drop_height_m"]),
+                    _uniform(rng, cfg["placement"]["drop_height_m"]) + i * cfg["placement"].get("stack_spacing_m", 0.0),
                 ],
                 "initial_rotation": random_rotation(rng).tolist(),
                 "material": {k: _uniform(rng, v) for k, v in cfg["object_material"].items()},
@@ -114,4 +114,5 @@ def sample_scene(cfg: dict, scene_index: int, base_seed: int) -> dict:
         "objects": objects,
         "lights": lights,
         "table_material": {k: _uniform(rng, v) for k, v in cfg["table_material"].items()},
+        "world_background_strength": _uniform(rng, cfg["world_background_strength"]) if "world_background_strength" in cfg else None,
     }

@@ -57,3 +57,18 @@ def test_sampled_values_respect_configured_ranges():
         for o in s["objects"]:
             assert o["obj_id"] in CFG["objects"]
             assert 0.2 <= o["material"]["gray"] <= 0.9 and 0.0 <= o["material"]["metallic"] <= 0.5
+
+def test_stacked_drop_heights_and_world_strength():
+    cfg = {**CFG, "placement": {"area_m": 0.3, "drop_height_m": [0.08, 0.09], "stack_spacing_m": 0.16},
+           "world_background_strength": [0.0, 0.3]}
+    for i in range(30):
+        s = sample_scene(cfg, i, 2026)
+        z = [o["initial_position_m"][2] for o in s["objects"]]
+        assert all(b - a >= 0.15 for a, b in zip(z, z[1:]))  # at least 0.16 - 0.01 m apart
+        assert 0.0 <= s["world_background_strength"] <= 0.3
+
+
+def test_config_without_new_keys_is_unchanged():
+    s = sample_scene(CFG, 0, 2026)
+    assert s["world_background_strength"] is None
+    assert s["objects"][0]["initial_position_m"][2] <= 0.25  # no stacking added

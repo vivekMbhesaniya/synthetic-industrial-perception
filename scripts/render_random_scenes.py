@@ -44,7 +44,7 @@ for i, d in enumerate(job_dirs, start=1):
     bproc.utility.reset_keyframes()
 
     # Table: a passive rigid body in the plane z = 0
-    table = bproc.object.create_primitive("PLANE", size=2.0)
+    table = bproc.object.create_primitive("CUBE", scale=[1.0, 1.0, 0.05], location=[0.0, 0.0, -0.05])  # 2 x 2 x 0.1 m, top at z = 0
     table.set_cp("category_id", 0)
     tm = job["table_material"]
     table.replace_materials(grey_material("table", tm["gray"], tm["roughness"]))
@@ -71,6 +71,8 @@ for i, d in enumerate(job_dirs, start=1):
 
     bproc.object.simulate_physics_and_fix_final_poses(min_simulation_time=2, max_simulation_time=10, check_object_interval=1)
 
+    if job.get("world_background_strength") is not None:
+        bproc.renderer.set_world_background([1.0, 1.0, 1.0], strength=job["world_background_strength"])
     for lj in job["lights"]:
         light = bproc.types.Light()
         light.set_location(lj["position_m"])
