@@ -1,6 +1,6 @@
 # Synthetic-to-Real Data Pipeline for Industrial Perception
 
-**Status: work in progress.** Phases 1 to 3 complete (environment, verified renderer conventions,
+**Status: frozen on 16 November 2026 (tag v1.0).** Phases 1 to 3 complete (environment, verified renderer conventions,
 real-vs-rendered analysis on T-LESS). No model results yet.
 
 Research question: how can synthetic image and 3D sensor data generated in simulation
@@ -88,6 +88,32 @@ blenderproc run scripts/render_random_scenes.py data/synthetic/gen_v3 "scene_*"
 python scripts/validate_scenes.py data/synthetic/gen_v3 "scene_*"
 python scripts/compare_brightness.py data/raw/tless data/synthetic/gen_v3 "scene_*"
 ```
+## Phase 4 (first step): the real support plane
+
+RANSAC plane fits on real depth outside the parts (5 px margin), per frame. 42 of 50 frames were
+accepted (inlier fraction 63 to 100 %, inlier RMS 1.2 to 1.6 mm). The 8 lowest-elevation frames
+locked onto walls or other surfaces (8 to 16 % inliers) and were rejected. In BOP's world frame the
+table is the plane z = 0 (offset 0.35 mm), and the accepted fits agree with the consensus to a median
+of 0.56 degrees and 0.33 mm (max 0.98 degrees, 0.79 mm). The consensus plane is carried into all 50
+camera frames with the benchmark's camera poses.
+
+## Not done
+
+- Sensor noise model: measured (Phase 2) and designed (interior noise, edge dropout, background
+  bleeding, edge bias), but not implemented or validated.
+- No detector trained, no FID or KID, no Isaac Sim (no NVIDIA GPU available), only T-LESS scene 1
+  and the PrimeSense sensor.
+- Background brightness gap not resolved; Blender's Filmic tone curve is the suspected cause.
+
+## Run everything
+
+```
+.\scripts\run_pipeline.ps1 -RunDir data\runs\check -RandomScenes 10
+```
+
+Runs the tests, the 50-frame replica comparison, the plane fits, 10 random scenes with validation and
+brightness comparison, and compares the fresh results with the committed ones. About 15 minutes on a
+laptop CPU. Exact dependency versions: `requirements-lock.txt`.
 ## Reproduce
 
 ```

@@ -31,3 +31,6 @@ Thumbs.db
 
 # Editor settings (machine-specific paths)
 .vscode/
+
+# Fresh pipeline runs
+data/runs/
