@@ -1,6 +1,6 @@
 # Synthetic-to-Real Data Pipeline for Industrial Perception
 
-**Status: frozen on 16 November 2026 (tag v1.0).** Phases 1 to 3 complete (environment, verified renderer conventions,
+**Status:  (tag v1.0).** Phases 1 to 3 complete (environment, verified renderer conventions,
 real-vs-rendered analysis on T-LESS). No model results yet.
 
 Research question: how can synthetic image and 3D sensor data generated in simulation
