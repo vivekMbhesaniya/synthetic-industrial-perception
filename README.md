@@ -9,6 +9,49 @@ be made realistic enough to support industrial object perception models on real 
 Renderer: BlenderProc (CPU rendering, Blender 4.2.1). Scenes are described in renderer-independent
 job files; render scripts only read jobs and write images, so the renderer can be replaced.
 
+## Key results
+
+- Re-rendered 50 real T-LESS frames at their ground-truth poses: rendered silhouettes match the
+  benchmark exactly (IoU 1.000 on 131 unoccluded instances) after correcting a half-pixel convention.
+- Real depth deviates mainly at part edges: 4.97 % missing depth at the boundary vs 0.75 % inside,
+  and about one boundary pixel in five reports the background, more than 50 mm behind the part.
+- 300 randomized physics scenes, every labelled instance validated against its CAD model (median
+  distance 0.164 mm). The whole pipeline runs from one script and reproduces the committed results exactly.
+
+## Setup
+
+Tested on Windows 11, Python 3.12.16, Blender 4.2.1 (downloaded by BlenderProc), CPU rendering only.
+
+```
+conda create -n sip -c conda-forge --override-channels python=3.12 pip -y
+conda activate sip
+python -m pip install -r requirements-lock.txt
+python -m pip install -e ".[dev]"
+python -m pytest
+blenderproc quickstart
+```
+
+`blenderproc quickstart` downloads Blender on first use and renders a test image.
+
+Dataset: download `tless_base.zip`, `tless_models.zip` and `tless_test_primesense_bop19.zip` from the
+BOP mirror listed in `docs/datasets.md` (check the SHA-256 hashes there), extract them into `data/raw/`,
+and arrange them as `data/raw/tless/` with `models_cad/`, `models_eval/`, `models_reconst/` and
+`test_primesense/` inside. The data is not part of this repository.
+
+## Repository structure
+
+| Path | Contents |
+| --- | --- |
+| `src/synperc/processing/` | Camera geometry (`projection.py`), BOP loader (`bop.py`), annotation checks (`annotations.py`) |
+| `src/synperc/evaluation/` | Mask IoU, centroid offset, depth residual statistics (`compare.py`), edge distance (`edges.py`) |
+| `src/synperc/generation/` | Seeded random scene sampler (`sampling.py`) |
+| `src/synperc/sensors/` | RANSAC plane fit and per-pixel plane depth (`plane.py`) |
+| `scripts/render_*.py` | Run inside Blender with `blenderproc run`; read job files, write renders |
+| `scripts/*.py` (others) | Run in the Python environment: job creation, statistics, validation, plane fits |
+| `scripts/run_pipeline.ps1` | Runs everything end to end and compares with the committed results |
+| `configs/` | Scene generation configurations v1 to v3 (v3 is current) |
+| `tests/` | 42 unit tests, including closed-form geometry checks |
+| `results/` | Committed figures, tables and plane fits |
 ## Phase 1: verified tools
 
 - BlenderProc's depth output is planar depth: a plane rendered at 1.000 m reads 1.000000 m in every
@@ -131,3 +174,14 @@ python scripts/analyze_replica_residuals.py data/processed/scene01_replica_pixel
 ```
 
 Dataset source, license and file hashes: `docs/datasets.md`.
+
+## References and license
+
+- T. Hodan, P. Haluza, S. Obdrzalek, J. Matas, M. Lourakis, X. Zabulis. *T-LESS: An RGB-D Dataset for
+  6D Pose Estimation of Texture-less Objects.* WACV 2017.
+- T. Hodan et al. *BOP: Benchmark for 6D Object Pose Estimation.* ECCV 2018.
+- M. Denninger et al. *BlenderProc2: A Procedural Pipeline for Photorealistic Rendering.* Journal of
+  Open Source Software 8(82), 2023.
+
+No license file is included, so the code is all rights reserved. The T-LESS data is not redistributed
+here; see `docs/datasets.md` for its source, license and attribution.
