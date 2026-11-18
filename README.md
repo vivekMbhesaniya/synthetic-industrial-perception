@@ -16,6 +16,8 @@ job files; render scripts only read jobs and write images, so the renderer can b
   the plane with 63.0 mm RMS. See `results/phase1/plane_depth_check.png`.
 - Open3D's voxel downsampling places its grid origin half a voxel below the minimum point.
 
+![Plane at 1.000 m: rendered depth and the ray distance it would be mistaken for](results/phase1/plane_depth_check.png)
+
 ## Phase 2: real T-LESS frames vs renders at ground-truth poses
 
 T-LESS test scene 1 (PrimeSense sensor): 50 frames, 200 object instances, about 2.0 million pixels.
@@ -26,6 +28,8 @@ Each frame is re-rendered with its own intrinsics and the ground-truth poses, th
 all 131 unoccluded instances match the benchmark's full masks exactly: IoU min 1.000, largest
 centroid offset 0.03 px.
 
+![Real T-LESS frame vs render at ground-truth poses: RGB, mask agreement, depth residual](results/phase2/replica_s01_im000001.png)
+
 **Depth residual, real minus rendered**, on the rendered visible masks:
 
 | Distance to mask edge | Missing depth | Median | Robust sigma | Residual > +50 mm |
@@ -35,6 +39,8 @@ centroid offset 0.03 px.
 | 3-4 px | 4.53 % | -2.59 mm | 6.17 mm | 7.69 % |
 | 5-9 px | 3.57 % | -1.33 mm | 5.24 mm | 1.99 % |
 | >= 10 px | 0.75 % | +0.20 mm | 3.90 mm | 0.08 % |
+
+![Depth residual and missing depth by distance to the part edge, 50 frames](results/phase2/scene01_edge_profile.png)
 
 Findings:
 - Near part boundaries the real sensor frequently reports the background: one in five boundary
